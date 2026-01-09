@@ -1,0 +1,118 @@
+<?php
+session_start();
+
+// Establishing connection to the database
+$servername = "localhost";
+$username = "root";
+$password = "";
+$dbname = "arrowgrub";
+$localhost="192.168.4.12";
+
+$conn = mysqli_connect($servername, $username, $password, $dbname);
+
+// Check connection
+if (!$conn) {
+    die("Connection failed: " . mysqli_connect_error());
+}
+?>
+
+<!DOCTYPE html>
+<html>
+<head>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" />
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+    <script src="./Asset/js/index.js" async></script>
+     <title>ABS ADMIN PAGE</title>
+    <style>
+        .product-item {
+            border: 1px solid #333;
+            background-color: #f1f1f1;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 20px;
+        }
+        .product-image {
+            text-align: center;
+        }
+        .product-image img {
+            max-width: 100%;
+            max-height: 150px;
+        }
+        .container12{
+            margin-top: 03%;
+        }
+
+    </style>
+</head>
+<body>
+    <div id="head2"></div>
+
+<div class="container12">
+    <!-- Shopping cart section -->
+    <h3> Orders</h3>
+    <div class="table-responsive">
+        <table class="table table-bordered">
+            <tr>
+                <th width="15%">Username</th>
+                <th width="15%">Item Name</th>
+                <th width="15%">Tickets</th>
+                <th width="15%">Date</th>
+                <th width="15%">Time</th>
+                <th width="10%">Order ID</th>
+                <th width="15%">Total Amount</th>
+                <th width="10%">Delete Order</th>
+            </tr>
+            <?php
+           $query = "SELECT r.username, o.item_name, r.tickets, r.date, r.times, o.order_id, o.total_price
+           FROM reserved r
+           JOIN `orders` o ON r.username = o.username
+           WHERE o.status = 'upcoming'
+           ORDER BY r.created_at DESC";
+
+            $result = mysqli_query($conn, $query);
+            if(mysqli_num_rows($result) > 0) {
+                while($row = mysqli_fetch_assoc($result)) {
+                    ?>
+                    <tr>
+                        <td><?php echo $row["username"]; ?></td>
+                        <td><?php echo $row["item_name"]; ?></td>
+                        <td><?php echo $row["tickets"]; ?></td>
+                        <td><?php echo $row["date"]; ?></td>
+                        <td><?php echo $row["times"]; ?></td>
+                        <td><?php echo $row["order_id"]; ?></td>
+                        <td><?php echo $row["total_price"]; ?></td>
+                        <td><a href="?order_id=<?php echo $row['order_id']; ?>">Delete</a></td>
+                    </tr>
+                    <?php
+                }
+            } else {
+                ?>
+                <tr>
+                    <td colspan="7">No  orders found.</td>
+                </tr>
+                <?php
+            }
+            ?>
+        </table>
+    </div>
+    </div>
+</div>
+</body>
+</html>
+
+<?php
+// Close the database connection
+if (isset($_GET['order_id'])) {
+    $order_id = $_GET['order_id'];
+    
+    $delete_query = "DELETE FROM `orders` WHERE order_id = '$order_id'";
+    
+    if (mysqli_query($conn, $delete_query)) {
+        echo "Order deleted successfully";
+    } else {
+        echo "Error deleting order: " . mysqli_error($conn);
+    }
+}
+mysqli_close($conn);
+?>
